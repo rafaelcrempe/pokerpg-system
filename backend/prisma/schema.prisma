@@ -5,3 +5,176 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ENUMS
+
+enum Role {
+  ADMIN
+  PLAYER
+  NPC
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  GENDERLESS
+}
+
+enum Stat {
+  HP
+  ATTACK
+  DEFENSE
+  SP_ATTACK
+  SP_DEFENSE
+  SPEED
+}
+
+// USER
+
+model User {
+  id        String   @id @default(uuid())
+
+  name      String
+  lastName  String   @map("last_name")
+
+  username  String   @unique
+  email     String   @unique
+  password  String
+
+  role      Role     @default(PLAYER)
+
+  sheets      PokemonSheet[]
+  permissions SheetPermission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// POKEMON BASE
+
+model PokemonSpecies {
+  id         String @id @default(uuid())
+
+  name       String @unique
+  pokedexId  Int    @unique
+
+  height     Float?
+  weight     Float?
+
+  createdAt  DateTime @default(now())
+
+  forms      PokemonForm[]
+}
+
+model PokemonForm {
+  id          String @id @default(uuid())
+
+  speciesId   String
+  name        String @default("default") // aqui tem que ser o nome da forma, n confundir! "ALOLA"
+
+  spriteUrl   String
+
+  // Stats base
+  hp          Int
+  attack      Int
+  defense     Int
+  spAttack    Int
+  spDefense   Int
+  speed       Int
+
+  // Tipos
+  type1       String
+  type2       String?
+
+  createdAt   DateTime @default(now())
+
+  species     PokemonSpecies @relation(fields: [speciesId], references: [id])
+
+  sheets      PokemonSheet[]
+
+  @@unique([speciesId, name])
+}
+
+// FICHA (CORE DO SISTEMA)
+
+model PokemonSheet {
+  id        String @id @default(uuid())
+
+  nickname  String?
+  level     Int    @default(1)
+
+  // RELAÇÃO COM POKÉMON BASE
+  formId    String
+  form      PokemonForm @relation(fields: [formId], references: [id])
+
+  // DONO
+  ownerId   String
+  owner     User @relation(fields: [ownerId], references: [id])
+
+  // IDENTIDADE
+  gender         Gender?
+  heldItemName   String?
+
+  // MODIFICADORES (RPG)
+  hpTemp    Int @default(0)
+  hpVita    Int @default(0)
+
+  atkTemp   Int @default(0)
+  atkVita   Int @default(0)
+
+  defTemp   Int @default(0)
+  defVita   Int @default(0)
+
+  spAtkTemp Int @default(0)
+  spAtkVita Int @default(0)
+
+  spDefTemp Int @default(0)
+  spDefVita Int @default(0)
+
+  speedTemp Int @default(0)
+  speedVita Int @default(0)
+
+  // natureza
+  natureId  String?
+  nature    Nature? @relation(fields: [natureId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  permissions SheetPermission[]
+}
+
+// NATURE
+
+model Nature {
+  id            String @id @default(uuid())
+
+  name          String @unique
+
+  increaseStat  Stat
+  decreaseStat  Stat
+
+  createdAt     DateTime @default(now())
+
+  sheets        PokemonSheet[]
+}
+
+// PERMISSÕES
+
+model SheetPermission {
+  id       String @id @default(uuid())
+
+  sheetId  String
+  userId   String
+
+  canEdit  Boolean @default(false)
+
+  sheet    PokemonSheet @relation(fields: [sheetId], references: [id])
+  user     User          @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([sheetId, userId])
+}
