@@ -33,19 +33,14 @@ enum Stat {
 
 model User {
   id        String   @id @default(uuid())
-
   name      String
   lastName  String   @map("last_name")
-
   username  String   @unique
   email     String   @unique
   password  String
-
   role      Role     @default(PLAYER)
-
   sheets      PokemonSheet[]
   permissions SheetPermission[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -56,27 +51,20 @@ model User {
 
 model PokemonSpecies {
   id         String @id @default(uuid())
-
   name       String @unique
   pokedexId  Int    @unique
-
   height     Float?
   weight     Float?
-
   createdAt  DateTime @default(now())
-
   forms      PokemonForm[]
 }
 
 model PokemonForm {
   id          String @id @default(uuid())
-
   speciesId   String
-  name        String @default("default") // aqui tem que ser o nome da forma, n confundir! "ALOLA"
-
+  name        String @default("base") // aqui tem que ser o nome da forma, n confundir! "ALOLA"
   spriteUrl   String
-
-  // Stats base
+ 
   hp          Int
   attack      Int
   defense     Int
@@ -84,14 +72,12 @@ model PokemonForm {
   spDefense   Int
   speed       Int
 
-  // Tipos
+
   type1       String
   type2       String?
 
   createdAt   DateTime @default(now())
-
   species     PokemonSpecies @relation(fields: [speciesId], references: [id])
-
   sheets      PokemonSheet[]
 
   @@unique([speciesId, name])
@@ -101,7 +87,6 @@ model PokemonForm {
 
 model PokemonSheet {
   id        String @id @default(uuid())
-
   nickname  String?
   level     Int    @default(1)
 
@@ -152,12 +137,9 @@ model Nature {
   id            String @id @default(uuid())
 
   name          String @unique
-
   increaseStat  Stat
   decreaseStat  Stat
-
   createdAt     DateTime @default(now())
-
   sheets        PokemonSheet[]
 }
 
@@ -165,15 +147,11 @@ model Nature {
 
 model SheetPermission {
   id       String @id @default(uuid())
-
   sheetId  String
   userId   String
-
   canEdit  Boolean @default(false)
-
   sheet    PokemonSheet @relation(fields: [sheetId], references: [id])
   user     User          @relation(fields: [userId], references: [id])
-
   createdAt DateTime @default(now())
 
   @@unique([sheetId, userId])
