@@ -6,21 +6,21 @@ Sistema de RPG inspirado em Pokémon, com gerenciamento de usuários, fichas de 
 
 ## 📌 Status do projeto
 
-🚧 Em desenvolvimento
+🚧 Em desenvolvimento  
 
-✅ Backend base funcional
-✅ Sistema de autenticação implementado
-🚧 Modelagem das regras do jogo em andamento
+✅ Backend base funcional  
+✅ Sistema de autenticação implementado  
+🚧 Modelagem das regras do jogo em andamento  
 
 ---
 
-## 👨‍💻 Autor
+## Autor
 
 Desenvolvido por **Rafael Crempe**
 
 ---
 
-## 🚀 Tecnologias utilizadas
+## Tecnologias utilizadas
 
 ### Backend
 
@@ -40,7 +40,7 @@ Desenvolvido por **Rafael Crempe**
 
 ---
 
-## 📁 Estrutura atual do projeto
+## Estrutura atual do projeto
 
 ```txt
 src/
@@ -119,7 +119,7 @@ http://localhost:3333
 
 ---
 
-## 🌐 Rotas disponíveis
+## Rotas disponíveis
 
 ### 🔹 Teste da API
 
@@ -197,7 +197,7 @@ Resposta:
 ---
 
 
-## 🔐 Sistema de autenticação
+## Sistema de autenticação
 
 ### Implementado
 
@@ -215,11 +215,11 @@ Resposta:
 
 ---
 
-## 🧠 Conceito do sistema
+## Conceito do sistema
 
 O projeto é dividido em pilares principais:
 
-### 🧬 Dados base (Pokémon)
+### Dados base (Pokémon)
 
 * Espécies
 * Formas
@@ -227,7 +227,7 @@ O projeto é dividido em pilares principais:
 * Stats base
 * Características oficiais
 
-### 📄 Fichas (instâncias)
+### Fichas (instâncias)
 
 Cada jogador poderá possuir Pokémon únicos com:
 
@@ -239,7 +239,7 @@ Cada jogador poderá possuir Pokémon únicos com:
 * Modificadores permanentes
 * Estado atual
 
-### ⚙️ Engine de regras
+### Engine de regras
 
 Sistema futuro para cálculo automático de:
 
@@ -252,7 +252,7 @@ Sistema futuro para cálculo automático de:
 
 ---
 
-## 🧩 Funcionalidades concluídas
+## Funcionalidades concluídas
 
 * [x] Estrutura inicial backend
 * [x] Fastify configurado
@@ -265,7 +265,7 @@ Sistema futuro para cálculo automático de:
 
 ---
 
-## 🚧 Próximas funcionalidades
+## Próximas funcionalidades
 
 * [ ] Rota `/me`
 * [ ] CRUD de fichas Pokémon
@@ -287,6 +287,6 @@ Sistema futuro para cálculo automático de:
 
 ---
 
-## 📌 Objetivo do projeto
+## Objetivo do projeto
 
 Criar uma plataforma completa de RPG inspirado em Pokémon, com foco em organização de fichas, progressão de jogadores, automação de regras e experiência moderna via web.
