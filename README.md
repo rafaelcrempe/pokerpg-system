@@ -1,6 +1,6 @@
 # 🧩 Pokémon RPG System
 
-Sistema de RPG inspirado em Pokémon, com gerenciamento de fichas, jogadores, inventário e batalhas.
+Sistema de RPG inspirado em Pokémon, com gerenciamento de usuários, fichas de Pokémon, inventário e permissões.
 
 ---
 
@@ -8,12 +8,17 @@ Sistema de RPG inspirado em Pokémon, com gerenciamento de fichas, jogadores, in
 
 🚧 Em desenvolvimento
 
+✅ Backend base funcional
+✅ Sistema de autenticação implementado
+🚧 Modelagem das regras do jogo em andamento
+
 ---
 
 ## 👨‍💻 Autor
 
-Desenvolvido por Rafael Crempe
+Desenvolvido por **Rafael Crempe**
 
+---
 
 ## 🚀 Tecnologias utilizadas
 
@@ -25,7 +30,26 @@ Desenvolvido por Rafael Crempe
 * **Prisma ORM**
 * **PostgreSQL**
 * **JWT** (autenticação)
-* **Zod** (validação)
+* **Bcrypt** (hash de senha)
+* **Zod** (validação futura)
+
+### Infraestrutura
+
+* **Docker**
+* **Docker Compose**
+
+---
+
+## 📁 Estrutura atual do projeto
+
+```txt
+src/
+├── controllers/
+├── routes/
+├── middlewares/
+├── lib/
+├── server.ts
+```
 
 ---
 
@@ -62,13 +86,13 @@ JWT_SECRET="supersecret"
 ### 4. Suba o banco de dados (Docker)
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-ou (dependendo da versão):
+ou:
 
 ```bash
-docker compose up -d
+docker-compose up -d
 ```
 
 ---
@@ -87,21 +111,27 @@ npx prisma migrate dev
 npm run dev
 ```
 
+Servidor padrão:
+
+```txt
+http://localhost:3333
+```
+
 ---
 
-## 🌐 Rotas de teste
+## 🌐 Rotas disponíveis
 
-### 🔹 Teste do servidor
+### 🔹 Teste da API
 
+```http
+GET /
 ```
-GET http://localhost:3333/
-```
 
-Resposta esperada:
+Resposta:
 
 ```json
 {
-  "message": "API rodando 🚀"
+  "message": "API funcionando"
 }
 ```
 
@@ -109,70 +139,154 @@ Resposta esperada:
 
 ### 🔹 Teste de conexão com banco
 
+```http
+GET /test-db
 ```
-GET http://localhost:3333/test-db
+
+---
+
+### 🔹 Criar usuário
+
+```http
+POST /users
 ```
+
+Body:
+
+```json
+{
+  "name": "Name",
+  "lastName": "LastName",
+  "username": "user1",
+  "email": "user1@email.com",
+  "password": "123456"
+}
+```
+
+---
+
+### 🔹 Login
+
+```http
+POST /login
+```
+
+Body:
+
+```json
+{
+  "username": "user1",
+  "password": "123456"
+}
+```
+
+Resposta:
+
+```json
+{
+  "message": "Login realizado com sucesso.",
+  "token": "jwt_token",
+  "user": {
+    "id": "...",
+    "username": "user1",
+    "role": "PLAYER"
+  }
+}
+```
+
+---
+
+
+## 🔐 Sistema de autenticação
+
+### Implementado
+
+* Cadastro de usuários
+* Login com username + senha
+* Hash de senha com bcrypt
+* JWT Token
+* Middleware de proteção de rotas
+
+### Roles disponíveis
+
+* `ADMIN`
+* `PLAYER`
+* `NPC`
 
 ---
 
 ## 🧠 Conceito do sistema
 
-O sistema é baseado em três pilares principais:
+O projeto é dividido em pilares principais:
 
 ### 🧬 Dados base (Pokémon)
 
-* Espécies e formas
+* Espécies
+* Formas
+* Tipagens
 * Stats base
-* Tipos e características
-
----
+* Características oficiais
 
 ### 📄 Fichas (instâncias)
 
-* Pokémon pertencentes a jogadores
-* Nível, modificadores e estado atual
-* Golpes e habilidades
+Cada jogador poderá possuir Pokémon únicos com:
 
----
+* Nível
+* Gênero
+* Nature
+* Item segurado
+* Modificadores temporários
+* Modificadores permanentes
+* Estado atual
 
 ### ⚙️ Engine de regras
 
-* Cálculo de atributos
-* Influência de nível, natureza e modificadores
-* Sistema inspirado em planilha dinâmica
+Sistema futuro para cálculo automático de:
+
+* HP final
+* Atributos
+* Buffs / Debuffs
+* Influência de nível
+* Naturezas
+* Regras personalizadas do RPG
 
 ---
 
-## 🔐 Autenticação (planejado)
+## 🧩 Funcionalidades concluídas
 
-* Sistema de usuários
-* Roles:
-
-  * `ADMIN`
-  * `PLAYER`
-* Permissões de acesso a fichas
+* [x] Estrutura inicial backend
+* [x] Fastify configurado
+* [x] Prisma + PostgreSQL
+* [x] Docker configurado
+* [x] Sistema de usuários
+* [x] Cadastro de usuário
+* [x] Login com JWT
+* [x] Middleware de autenticação
 
 ---
 
-## 🧩 Funcionalidades planejadas
+## 🚧 Próximas funcionalidades
 
-* [ ] Sistema de usuários (login/register)
-* [ ] Criação de fichas de Pokémon
-* [ ] Sistema de permissões
-* [ ] Inventário (itens)
-* [ ] Time principal (party)
-* [ ] Engine de cálculo de atributos
-* [ ] Interface em React
-* [ ] Sistema de batalha
+* [ ] Rota `/me`
+* [ ] CRUD de fichas Pokémon
+* [ ] Sistema de permissões entre usuários
+* [ ] Party principal
+* [ ] Inventário
+* [ ] Painel ADMIN
+* [ ] Frontend React
+* [ ] Dashboard do jogador
 
 ---
 
 ## ⚠️ Observações
 
-* O diretório `node_modules` não é versionado
-* O arquivo `.env` não deve ser commitado
-* As migrations do Prisma podem ser versionadas futuramente
+* `node_modules/` não é versionado
+* `.env` não deve ser commitado
+* Use `npx prisma studio` para visualizar dados locais
+* Tokens JWT devem permanecer privados
 
 ---
 
+## 📌 Objetivo do projeto
 
+Criar uma plataforma completa de RPG inspirado em Pokémon, com foco em organização de fichas, progressão de jogadores, automação de regras e experiência moderna via web.
