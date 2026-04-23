@@ -47,7 +47,14 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 
     return reply.status(201).send({
       message: "Usuário criado com sucesso!",
-      data: user,
+      data: {
+        id: user.id,
+        name: user.name,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Erro ao criar usuário:", error);
@@ -69,7 +76,7 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
 
   try {
     const u = await prisma.user.findUnique({
-      where: { username: username },
+      where: { username },
     });
 
     if (!u) {
@@ -92,10 +99,17 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
       throw new Error("JWT_SECRET não configurado.");
     }
 
-    const token = jwt.sign({ role: u.role }, process.env.JWT_SECRET, {
-      subject: u.id,
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      {
+        role: u.role,
+        username: u.username,
+      },
+      process.env.JWT_SECRET,
+      {
+        subject: u.id,
+        expiresIn: "7d",
+      },
+    );
 
     return reply.status(200).send({
       message: "Login realizado com sucesso.",
