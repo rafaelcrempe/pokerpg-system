@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Role } from "@prisma/client";
 
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
   const body = request.body as {
@@ -132,3 +133,41 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
     });
   }
 }
+
+export async function getMe(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = request.user.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        lastName: true,
+        username: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return reply.status(404).send({
+        error: "Not Found",
+        message: "Usuário não encontrado.",
+      });
+    }
+
+    return reply.status(200).send({
+      user,
+    });
+  } catch (error) {
+    console.error("Erro ao recuperar dados do usuário:", error);
+
+    return reply.status(500).send({
+      error: "Internal Server Error",
+      message: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+    });
+  }
+}
+
