@@ -108,7 +108,7 @@ export async function login(request: FastifyRequest, reply: FastifyReply) {
       process.env.JWT_SECRET,
       {
         subject: u.id,
-        expiresIn: "7d",
+        expiresIn: "120d",
       },
     );
 

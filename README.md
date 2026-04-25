@@ -262,12 +262,12 @@ Sistema futuro para cálculo automático de:
 * [x] Cadastro de usuário
 * [x] Login com JWT
 * [x] Middleware de autenticação
+* [x] Rota `/me`
 
 ---
 
 ## Próximas funcionalidades
 
-* [ ] Rota `/me`
 * [ ] CRUD de fichas Pokémon
 * [ ] Sistema de permissões entre usuários
 * [ ] Party principal
