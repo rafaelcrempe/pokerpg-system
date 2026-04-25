@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../lib/prisma";
 
-export async function createSheet(request: FastifyRequest,reply: FastifyReply) {
+export async function createSheet(request: FastifyRequest, reply: FastifyReply) {
   const body = request.body as {
     formId: string;
   };
@@ -59,7 +59,7 @@ export async function getMySheets(request: FastifyRequest, reply: FastifyReply) 
   }
 }
 
-export async function getSheetByID(request: FastifyRequest,reply: FastifyReply) {
+export async function getSheetByID(request: FastifyRequest, reply: FastifyReply) {
   try {
     const { id } = request.params as { id: string };
 
@@ -108,7 +108,7 @@ export async function getSheetByID(request: FastifyRequest,reply: FastifyReply) 
   }
 }
 
-export async function patchSheet(request: FastifyRequest,reply: FastifyReply){
+export async function patchSheet(request: FastifyRequest, reply: FastifyReply) {
   try {
     const { id } = request.params as { id: string };
 
@@ -182,6 +182,49 @@ export async function patchSheet(request: FastifyRequest,reply: FastifyReply){
     });
   } catch (error) {
     console.error("Erro ao atualizar ficha:", error);
+
+    return reply.status(500).send({
+      error: "Internal Server Error",
+      message: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+    });
+  }
+}
+
+
+export async function deleteSheet(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { id } = request.params as { id: string };
+
+    const sheet = await prisma.pokemonSheet.findUnique({
+      where: { id },
+    });
+
+    if (!sheet) {
+      return reply.status(404).send({
+        error: "Not Found",
+        message: "Ficha não encontrada.",
+      });
+    }
+
+    const isAdmin = request.user.role === "ADMIN";
+    const isOwner = sheet.ownerUserId === request.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return reply.status(403).send({
+        error: "Forbidden",
+        message: "Você não tem permissão para apagar esta ficha.",
+      });
+    }
+
+    await prisma.pokemonSheet.delete({
+      where: { id },
+    });
+
+    return reply.status(204).send({
+      message: "Ficha apagada com sucesso."
+    });
+  } catch (error) {
+    console.error("Erro ao apagar ficha:", error);
 
     return reply.status(500).send({
       error: "Internal Server Error",
