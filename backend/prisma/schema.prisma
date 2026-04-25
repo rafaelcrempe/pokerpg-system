@@ -11,7 +11,6 @@ datasource db {
 enum Role {
   ADMIN
   PLAYER
-  NPC
 }
 
 enum Gender {
@@ -42,7 +41,7 @@ enum ConditionType {
   TRAPPED
 }
 
-// USER
+// USERS
 
 model User {
   id          String   @id @default(uuid())
@@ -53,13 +52,44 @@ model User {
   password    String
   role        Role     @default(PLAYER)
 
-  sheets      PokemonSheet[]
+  sheets      PokemonSheet[] @relation("UserSheets")
   permissions SheetPermission[]
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+// AGRUPADORES DE NPCS
+
+model NpcGroup {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  npcs        NpcTrainer[]
+}
+
+// NPCS
+
+model NpcTrainer {
+  id          String   @id @default(uuid())
+  name        String
+  title       String?
+  notes       String?
+  imageUrl    String?
+
+  groupId     String?
+  group       NpcGroup? @relation(fields: [groupId], references: [id])
+
+  sheets      PokemonSheet[] @relation("NpcSheets")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // POKEMON BASE
@@ -81,27 +111,42 @@ model PokemonSpecies {
 }
 
 model PokemonForm {
-  id          String   @id @default(uuid())
-  speciesId   String
+  id            String   @id @default(uuid())
+  speciesId     String
 
-  name        String   @default("base")
-  spriteUrl   String
+  name          String   @default("base")
+  spriteUrl     String
 
-  hp          Int
-  attack      Int
-  defense     Int
-  spAttack    Int
-  spDefense   Int
-  speed       Int
+  // Stats base
 
-  type1       String
-  type2       String?
+  hp            Int
+  attack        Int
+  defense       Int
+  spAttack      Int
+  spDefense     Int
+  speed         Int
 
-  createdAt   DateTime @default(now())
+  // Tipagem
 
-  species     PokemonSpecies @relation(fields: [speciesId], references: [id])
+  type1         String
+  type2         String?
 
-  sheets      PokemonSheet[]
+  // Capacidades biológicas fixas
+
+  strength      Int @default(0)
+  intelligence  Int @default(0)
+  jump          Int @default(0)
+  run           Int @default(0)
+  swim          Int @default(0)
+  fly           Int @default(0)
+  dive          Int @default(0)
+  dig           Int @default(0)
+
+  createdAt     DateTime @default(now())
+
+  species       PokemonSpecies @relation(fields: [speciesId], references: [id])
+
+  sheets        PokemonSheet[]
 
   @@unique([speciesId, name])
 }
@@ -110,7 +155,6 @@ model PokemonForm {
 
 model Nature {
   id            String   @id @default(uuid())
-
   name          String   @unique
 
   increaseStat  Stat
@@ -124,95 +168,109 @@ model Nature {
 // FICHA PRINCIPAL
 
 model PokemonSheet {
-  id            String   @id @default(uuid())
+  id             String   @id @default(uuid())
 
-  nickname      String?
-  level         Int      @default(1)
-  xp            Int      @default(0)
+  nickname       String?
+  level          Int      @default(1)
+  xp             Int      @default(0)
 
-  formId        String
-  form          PokemonForm @relation(fields: [formId], references: [id])
 
-  ownerId       String
-  owner         User @relation(fields: [ownerId], references: [id])
+  // Base Pokémon
 
-  gender        Gender?
+  formId         String
+  form           PokemonForm @relation(fields: [formId], references: [id])
 
-  natureId      String?
-  nature        Nature? @relation(fields: [natureId], references: [id])
+  // Dono - Jogador do Sistema
 
-  heldItemName  String?
-  abilityName   String?
+  ownerUserId    String?
+  ownerUser      User? @relation("UserSheets", fields: [ownerUserId], references: [id])
+
+  // Dono NPC
+
+  ownerNpcId     String?
+  ownerNpc       NpcTrainer? @relation("NpcSheets", fields: [ownerNpcId], references: [id])
+
+  // Identidade
+
+  gender         Gender?
+
+  natureId       String?
+  nature         Nature? @relation(fields: [natureId], references: [id])
+
+  heldItemName   String?
+  abilityName    String?
 
   customImageUrl String?
 
-  isShiny       Boolean @default(false)
-  canDynamax    Boolean @default(false)
-  canGigantamax Boolean @default(false)
+  // Gimmicks
 
-  loyalty       Int @default(0)
-  training      Int @default(0)
-  affection     Int @default(0)
-  affectionXp   Int @default(0)
+  isShiny        Boolean @default(false)
+  canDynamax     Boolean @default(false)
+  canGigantamax  Boolean @default(false)
 
-  notes         String?
+  // Progressão individual
 
-  currentHp     Int?
-  damageTaken   Int @default(0)
+  loyalty        Int @default(0)
+  training       Int @default(0)
+  affection      Int @default(0)
+  affectionXp    Int @default(0)
 
-  hpTemp        Int @default(0)
-  hpVita        Int @default(0)
+  // Observações
 
-  atkTemp       Int @default(0)
-  atkVita       Int @default(0)
+  notes          String?
+  otherSkills    String?
 
-  defTemp       Int @default(0)
-  defVita       Int @default(0)
+  // Estado atual / Marcadores de Batalha
 
-  spAtkTemp     Int @default(0)
-  spAtkVita     Int @default(0)
+  currentHp      Int?
+  damageTaken    Int @default(0)
 
-  spDefTemp     Int @default(0)
-  spDefVita     Int @default(0)
+  // Vitaminas / bônus individuais
 
-  speedTemp     Int @default(0)
-  speedVita     Int @default(0)
+  hpTemp         Int @default(0)
+  hpVita         Int @default(0)
 
-  atkStage      Int @default(0)
-  defStage      Int @default(0)
-  spAtkStage    Int @default(0)
-  spDefStage    Int @default(0)
-  speedStage    Int @default(0)
+  atkTemp        Int @default(0)
+  atkVita        Int @default(0)
 
-  accuracyStage Int @default(0)
-  evasionStage  Int @default(0)
+  defTemp        Int @default(0)
+  defVita        Int @default(0)
 
-  critStage     Int @default(0)
-  antiCritStage Int @default(0)
+  spAtkTemp      Int @default(0)
+  spAtkVita      Int @default(0)
 
-  strength      Int @default(0)
-  intelligence  Int @default(0)
-  jump          Int @default(0)
-  run           Int @default(0)
-  swim          Int @default(0)
-  fly           Int @default(0)
-  dive          Int @default(0)
-  dig           Int @default(0)
+  spDefTemp      Int @default(0)
+  spDefVita      Int @default(0)
 
-  otherSkills   String?
+  speedTemp      Int @default(0)
+  speedVita      Int @default(0)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // Stages temporários / Buffs de Batalha
 
-  permissions   SheetPermission[]
-  moves         PokemonSheetMove[]
-  conditions    PokemonSheetCondition[]
+  atkStage       Int @default(0)
+  defStage       Int @default(0)
+  spAtkStage     Int @default(0)
+  spDefStage     Int @default(0)
+  speedStage     Int @default(0)
+
+  accuracyStage  Int @default(0)
+  evasionStage   Int @default(0)
+
+  critStage      Int @default(0)
+  antiCritStage  Int @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  permissions    SheetPermission[]
+  moves          PokemonSheetMove[]
+  conditions     PokemonSheetCondition[]
 }
 
-// GOLPES EQUIPADOS
+// GOLPES APRENDIDOS
 
 model PokemonSheetMove {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
 
   sheetId     String
   sheet       PokemonSheet @relation(fields: [sheetId], references: [id])
@@ -230,22 +288,21 @@ model PokemonSheetMove {
 // CONDIÇÕES
 
 model PokemonSheetCondition {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
 
   sheetId     String
   sheet       PokemonSheet @relation(fields: [sheetId], references: [id])
 
   type        ConditionType
-
   persistent  Boolean @default(true)
 
   createdAt   DateTime @default(now())
 }
 
-// PERMISSÕES
+// PERMISSÕES EXTRAS / CONTROLE DO SISTEMA
 
 model SheetPermission {
-  id         String @id @default(uuid())
+  id          String   @id @default(uuid())
 
   sheetId     String
   userId      String

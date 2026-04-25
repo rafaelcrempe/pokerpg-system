@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { prisma } from './lib/prisma.js';
 import { userRoutes } from './routes/userRoutes.js';
+import { sheetRoutes } from './routes/sheetRoutes.js'
 
 
 const app = Fastify();
@@ -10,6 +11,7 @@ const app = Fastify();
 // registrar plugins
 await app.register(cors);
 await app.register(userRoutes);
+await app.register(sheetRoutes);
 
 // rota básica
 app.get('/', async () => {
