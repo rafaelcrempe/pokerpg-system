@@ -94,72 +94,85 @@ model Nature {
 }
 
 model PokemonSheet {
-  id                  String                  @id @default(uuid())
-  nickname            String?
-  level               Int                     @default(1)
-  formId              String
-  gender              Gender?
-  heldItemName        String?
 
-  hpTemp              Int                     @default(0)
-  hpVita              Int                     @default(0)
-  hpLevelPoints       Int                     @default(0)
+  id             String   @id @default(uuid())
+  nickname       String?
+  customImageUrl String?
+  notes          String?
 
-  atkTemp             Int                     @default(0)
-  atkVita             Int                     @default(0)
-  atkLevelPoints      Int                     @default(0)
+  formId     String
+  form       PokemonForm @relation(fields: [formId], references: [id])
 
-  defTemp             Int                     @default(0)
-  defVita             Int                     @default(0)
-  defLevelPoints      Int                     @default(0)
+  natureId   String?
+  nature     Nature?     @relation(fields: [natureId], references: [id])
 
-  spAtkTemp           Int                     @default(0)
-  spAtkVita           Int                     @default(0)
-  spAtkLevelPoints    Int                     @default(0)
+  ownerUserId String?
+  ownerUser   User?       @relation("UserSheets", fields: [ownerUserId], references: [id])
 
-  spDefTemp           Int                     @default(0)
-  spDefVita           Int                     @default(0)
-  spDefLevelPoints    Int                     @default(0)
+  ownerNpcId  String?
+  ownerNpc    NpcTrainer? @relation("NpcSheets", fields: [ownerNpcId], references: [id])
 
-  speedTemp           Int                     @default(0)
-  speedVita           Int                     @default(0)
-  speedLevelPoints    Int                     @default(0)
+  permissions SheetPermission[]
+  moves       PokemonSheetMove[]
+  conditions  PokemonSheetCondition[]
 
-  natureId            String?
-  createdAt           DateTime                @default(now())
-  updatedAt           DateTime                @updatedAt
-  abilityName         String?
-  accuracyStage       Int                     @default(0)
-  affection           Int                     @default(0)
-  affectionXp         Int                     @default(0)
-  antiCritStage       Int                     @default(0)
-  atkStage            Int                     @default(0)
-  canDynamax          Boolean                 @default(true)
-  canGigantamax       Boolean                 @default(false)
-  critStage           Int                     @default(0)
-  currentHp           Int?
-  customImageUrl      String?
-  damageTaken         Int                     @default(0)
-  defStage            Int                     @default(0)
-  evasionStage        Int                     @default(0)
-  isShiny             Boolean                 @default(false)
-  loyalty             Int                     @default(0)
-  notes               String?
-  otherSkills         String?
-  spAtkStage          Int                     @default(0)
-  spDefStage          Int                     @default(0)
-  speedStage          Int                     @default(0)
-  training            Int                     @default(0)
-  xp                  Int                     @default(0)
-  ownerNpcId          String?
-  ownerUserId         String?
-  form                PokemonForm             @relation(fields: [formId], references: [id])
-  nature              Nature?                 @relation(fields: [natureId], references: [id])
-  ownerNpc            NpcTrainer?             @relation("NpcSheets", fields: [ownerNpcId], references: [id])
-  ownerUser           User?                   @relation("UserSheets", fields: [ownerUserId], references: [id])
-  conditions          PokemonSheetCondition[]
-  moves               PokemonSheetMove[]
-  permissions         SheetPermission[]
+  level Int @default(1)
+  xp    Int @default(0)
+
+  gender        Gender?
+  abilityName   String?
+  heldItemName  String?
+  isShiny       Boolean @default(false)
+
+  currentHp   Int?
+  damageTaken Int @default(0)
+
+  hpLevelPoints Int @default(0)
+  hpVita        Int @default(0)
+  hpTemp        Int @default(0)
+
+  atkLevelPoints Int @default(0)
+  atkVita        Int @default(0)
+  atkTemp        Int @default(0)
+
+  defLevelPoints Int @default(0)
+  defVita        Int @default(0)
+  defTemp        Int @default(0)
+
+  spAtkLevelPoints Int @default(0)
+  spAtkVita        Int @default(0)
+  spAtkTemp        Int @default(0)
+
+  spDefLevelPoints Int @default(0)
+  spDefVita        Int @default(0)
+  spDefTemp        Int @default(0)
+
+  speedLevelPoints Int @default(0)
+  speedVita        Int @default(0)
+  speedTemp        Int @default(0)
+
+  atkStage    Int @default(0)
+  defStage    Int @default(0)
+  spAtkStage  Int @default(0)
+  spDefStage  Int @default(0)
+  speedStage  Int @default(0)
+
+  accuracyStage Int @default(0)
+  evasionStage  Int @default(0)
+  critStage     Int @default(1) 
+  antiCritStage Int @default(1)
+
+  canDynamax    Boolean @default(true)
+  canGigantamax Boolean @default(false)
+
+  loyalty     Int @default(0)
+  training    Int @default(0)
+  affection   Int @default(0)
+  affectionXp Int @default(0)
+  otherSkills String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model PokemonSheetMove {
