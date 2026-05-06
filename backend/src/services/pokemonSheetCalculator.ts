@@ -1,7 +1,3 @@
-// =========================
-// 🧱 TIPOS
-// =========================
-
 export type StatName =
   | "hp"
   | "atk"
@@ -77,9 +73,7 @@ type Sheet = {
   nature: Nature;
 };
 
-// =========================
-// 🔁 HELPERS
-// =========================
+
 
 const statMap: Record<NatureStat, keyof Form> = {
   HP: "hp",
@@ -110,9 +104,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-// =========================
-// 🧠 PATAMARES
-// =========================
 
 function getTiers(form: Form): TierStat[][] {
   const stats: TierStat[] = [
@@ -162,9 +153,7 @@ function validateTiers(stats: Stats, tiers: TierStat[][]) {
   }
 }
 
-// =========================
-// ⚔️ STAGES
-// =========================
+
 
 function getStageMultiplier(stage: number) {
   const s = clamp(stage, -5, 5);
@@ -186,9 +175,6 @@ function applyStages(stats: Stats, sheet: Sheet): Stats {
   };
 }
 
-// =========================
-// 🎯 SECUNDÁRIOS
-// =========================
 
 function getSecondary(sheet: Sheet) {
   return {
@@ -198,10 +184,6 @@ function getSecondary(sheet: Sheet) {
     antiCrit: sheet.antiCritStage * 10,
   };
 }
-
-// =========================
-// 🧮 MAIN
-// =========================
 
 export function calculateSheet(sheet: Sheet, form: Form) {
   const modifiedForm = applyNature(form, sheet.nature);
@@ -220,9 +202,6 @@ export function calculateSheet(sheet: Sheet, form: Form) {
     throw new Error("Você distribuiu mais pontos do que o permitido.");
   }
 
-  // =========================
-  // BASE (REGRAS DO LIVRO)
-  // =========================
 
   const baseStats: Stats = {
     hp: modifiedForm.hp + sheet.hpLevelPoints + sheet.hpVita,
@@ -252,9 +231,6 @@ export function calculateSheet(sheet: Sheet, form: Form) {
     throw new Error("Distância entre atributos inválida.");
   }
 
-  // =========================
-  // FINAL (FICHA)
-  // =========================
 
   const finalStats: Stats = {
     hp: baseStats.hp + sheet.hpTemp,
@@ -265,15 +241,9 @@ export function calculateSheet(sheet: Sheet, form: Form) {
     speed: baseStats.speed + sheet.speedTemp,
   };
 
-  // =========================
-  // DISPLAY (COM STAGE)
-  // =========================
 
   const displayStats = applyStages(finalStats, sheet);
 
-  // =========================
-  // SECUNDÁRIOS
-  // =========================
 
   const secondary = getSecondary(sheet);
 
