@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../lib/prisma";
+import { calculateSheet } from "../services/pokemonSheetCalculator";
 
 export async function createSheet(request: FastifyRequest, reply: FastifyReply) {
   const body = request.body as {
@@ -108,64 +109,36 @@ export async function getSheetByID(request: FastifyRequest, reply: FastifyReply)
   }
 }
 
-export async function patchSheet(request: FastifyRequest, reply: FastifyReply) {
+export async function patchSheet(request: FastifyRequest,reply: FastifyReply) {
   try {
     const { id } = request.params as { id: string };
+    const body = request.body as Partial<any>;
 
-    const body = request.body as {
-      nickname?: string | null;
-      level?: number;
-      xp?: number;
-      natureId?: string | null;
-      gender?: "MALE" | "FEMALE" | "GENDERLESS" | null;
-      heldItemName?: string | null;
-      abilityName?: string | null;
-      notes?: string | null;
-      currentHp?: number | null;
-      damageTaken?: number;
-      isShiny?: boolean;
-      canDynamax?: boolean;
-      canGigantamax?: boolean;
-    };
-
-    const sheet = await prisma.pokemonSheet.findUnique({
+    const existing = await prisma.pokemonSheet.findUnique({
       where: { id },
+      include: {
+        form: true,
+        nature: true,
+      },
     });
 
-    if (!sheet) {
+    if (!existing) {
       return reply.status(404).send({
         error: "Not Found",
         message: "Ficha não encontrada.",
       });
     }
 
-    const isAdmin = request.user.role === "ADMIN";
-    const isOwner = sheet.ownerUserId === request.user.id;
+    const mergedSheet = {
+      ...existing,
+      ...body,
+    };
 
-    if (!isAdmin && !isOwner) {
-      return reply.status(403).send({
-        error: "Forbidden",
-        message: "Você não tem permissão para editar esta ficha.",
-      });
-    }
+    const calculated = calculateSheet(mergedSheet, existing.form);
 
-    const updatedSheet = await prisma.pokemonSheet.update({
+    const updated = await prisma.pokemonSheet.update({
       where: { id },
-      data: {
-        nickname: body.nickname,
-        level: body.level,
-        xp: body.xp,
-        natureId: body.natureId,
-        gender: body.gender,
-        heldItemName: body.heldItemName,
-        abilityName: body.abilityName,
-        notes: body.notes,
-        currentHp: body.currentHp,
-        damageTaken: body.damageTaken,
-        isShiny: body.isShiny,
-        canDynamax: body.canDynamax,
-        canGigantamax: body.canGigantamax,
-      },
+      data: body,
       include: {
         form: {
           include: {
@@ -178,14 +151,17 @@ export async function patchSheet(request: FastifyRequest, reply: FastifyReply) {
 
     return reply.status(200).send({
       message: "Ficha atualizada com sucesso.",
-      data: updatedSheet,
+      data: {
+        ...updated,
+        calculated,
+      },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao atualizar ficha:", error);
 
-    return reply.status(500).send({
-      error: "Internal Server Error",
-      message: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+    return reply.status(400).send({
+      error: "Bad Request",
+      message: error.message || "Erro ao atualizar ficha.",
     });
   }
 }
