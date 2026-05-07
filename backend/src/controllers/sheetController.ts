@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../lib/prisma";
 import { calculateSheet } from "../services/pokemonSheetCalculator";
+import { buildSheetResponse } from "../builders/buildSheetResponse";
 
 export async function createSheet(request: FastifyRequest, reply: FastifyReply) {
   const body = request.body as {
@@ -47,7 +48,7 @@ export async function getMySheets(request: FastifyRequest, reply: FastifyReply) 
     });
 
     return reply.status(200).send({
-      data: sheets,
+      data: sheets.map(buildSheetResponse),
     });
 
   } catch (error) {
@@ -96,7 +97,7 @@ export async function getSheetByID(request: FastifyRequest, reply: FastifyReply)
     }
 
     return reply.status(200).send({
-      data: sheet,
+      data: buildSheetResponse(sheet),
     });
 
   } catch (error) {
@@ -109,7 +110,7 @@ export async function getSheetByID(request: FastifyRequest, reply: FastifyReply)
   }
 }
 
-export async function patchSheet(request: FastifyRequest,reply: FastifyReply) {
+export async function patchSheet(request: FastifyRequest, reply: FastifyReply) {
   try {
     const { id } = request.params as { id: string };
     const body = request.body as Partial<any>;
@@ -117,7 +118,11 @@ export async function patchSheet(request: FastifyRequest,reply: FastifyReply) {
     const existing = await prisma.pokemonSheet.findUnique({
       where: { id },
       include: {
-        form: true,
+        form: {
+          include: {
+            species: true,
+          },
+        },
         nature: true,
       },
     });
@@ -129,12 +134,23 @@ export async function patchSheet(request: FastifyRequest,reply: FastifyReply) {
       });
     }
 
+    const isAdmin = request.user.role === "ADMIN";
+    const isOwner = existing.ownerUserId === request.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return reply.status(403).send({
+        error: "Forbidden",
+        message: "Você não tem permissão para editar esta ficha.",
+      });
+    }
+
     const mergedSheet = {
       ...existing,
       ...body,
     };
 
-    const calculated = calculateSheet(mergedSheet, existing.form);
+    // Valida regras da ficha antes de salvar
+    calculateSheet(mergedSheet, existing.form);
 
     const updated = await prisma.pokemonSheet.update({
       where: { id },
@@ -146,16 +162,16 @@ export async function patchSheet(request: FastifyRequest,reply: FastifyReply) {
           },
         },
         nature: true,
+        moves: true,
+        conditions: true,
       },
     });
 
     return reply.status(200).send({
       message: "Ficha atualizada com sucesso.",
-      data: {
-        ...updated,
-        calculated,
-      },
+      data: buildSheetResponse(updated),
     });
+
   } catch (error: any) {
     console.error("Erro ao atualizar ficha:", error);
 
@@ -165,7 +181,6 @@ export async function patchSheet(request: FastifyRequest,reply: FastifyReply) {
     });
   }
 }
-
 
 export async function deleteSheet(request: FastifyRequest, reply: FastifyReply) {
   try {
