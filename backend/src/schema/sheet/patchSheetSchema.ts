@@ -20,12 +20,12 @@ export const patchSheetSchema = z.object({
   spDefLevelPoints: z.number().int().min(0).optional(),
   speedLevelPoints: z.number().int().min(0).optional(),
 
-  hpVita: z.number().int().min(0).optional(),
-  atkVita: z.number().int().min(0).optional(),
-  defVita: z.number().int().min(0).optional(),
-  spAtkVita: z.number().int().min(0).optional(),
-  spDefVita: z.number().int().min(0).optional(),
-  speedVita: z.number().int().min(0).optional(),
+  hpVita: z.number().int().min(0).max(6).optional(),
+  atkVita: z.number().int().min(0).max(6).optional(),
+  defVita: z.number().int().min(0).max(6).optional(),
+  spAtkVita: z.number().int().min(0).max(6).optional(),
+  spDefVita: z.number().int().min(0).max(6).optional(),
+  speedVita: z.number().int().min(0).max(6).optional(),
 
   hpTemp: z.number().int().optional(),
   atkTemp: z.number().int().optional(),

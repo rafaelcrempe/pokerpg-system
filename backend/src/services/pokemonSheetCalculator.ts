@@ -73,8 +73,6 @@ type Sheet = {
   nature: Nature;
 };
 
-
-
 const statMap: Record<NatureStat, keyof Form> = {
   HP: "hp",
   ATTACK: "attack",
@@ -103,7 +101,6 @@ function applyNature(form: Form, nature: Nature): Form {
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
-
 
 function getTiers(form: Form): TierStat[][] {
   const stats: TierStat[] = [
@@ -153,8 +150,6 @@ function validateTiers(stats: Stats, tiers: TierStat[][]) {
   }
 }
 
-
-
 function getStageMultiplier(stage: number) {
   const s = clamp(stage, -5, 5);
 
@@ -167,14 +162,28 @@ function getStageMultiplier(stage: number) {
 function applyStages(stats: Stats, sheet: Sheet): Stats {
   return {
     hp: stats.hp,
-    atk: Math.floor(stats.atk * getStageMultiplier(sheet.atkStage)),
-    def: Math.floor(stats.def * getStageMultiplier(sheet.defStage)),
-    spAtk: Math.floor(stats.spAtk * getStageMultiplier(sheet.spAtkStage)),
-    spDef: Math.floor(stats.spDef * getStageMultiplier(sheet.spDefStage)),
-    speed: Math.floor(stats.speed * getStageMultiplier(sheet.speedStage)),
+
+    atk: Math.floor(
+      stats.atk * getStageMultiplier(sheet.atkStage)
+    ),
+
+    def: Math.floor(
+      stats.def * getStageMultiplier(sheet.defStage)
+    ),
+
+    spAtk: Math.floor(
+      stats.spAtk * getStageMultiplier(sheet.spAtkStage)
+    ),
+
+    spDef: Math.floor(
+      stats.spDef * getStageMultiplier(sheet.spDefStage)
+    ),
+
+    speed: Math.floor(
+      stats.speed * getStageMultiplier(sheet.speedStage)
+    ),
   };
 }
-
 
 function getSecondary(sheet: Sheet) {
   return {
@@ -186,8 +195,35 @@ function getSecondary(sheet: Sheet) {
 }
 
 export function calculateSheet(sheet: Sheet, form: Form) {
+  // Nature modifica atributos base
   const modifiedForm = applyNature(form, sheet.nature);
 
+  // Validação do total de vitaminas utilizadas
+  const totalVitamins =
+    sheet.hpVita +
+    sheet.atkVita +
+    sheet.defVita +
+    sheet.spAtkVita +
+    sheet.spDefVita +
+    sheet.speedVita;
+
+  if (totalVitamins > 6) {
+    throw new Error(
+      "A soma total das vitaminas não pode ultrapassar 6."
+    );
+  }
+
+  // Vitaminas alteram os patamares
+  const tierForm: Form = {
+    hp: modifiedForm.hp + sheet.hpVita,
+    attack: modifiedForm.attack + sheet.atkVita,
+    defense: modifiedForm.defense + sheet.defVita,
+    spAttack: modifiedForm.spAttack + sheet.spAtkVita,
+    spDefense: modifiedForm.spDefense + sheet.spDefVita,
+    speed: modifiedForm.speed + sheet.speedVita,
+  };
+
+  // pontos de nível disponíveis
   const totalPoints = sheet.level + 10;
 
   const usedPoints =
@@ -199,51 +235,72 @@ export function calculateSheet(sheet: Sheet, form: Form) {
     sheet.speedLevelPoints;
 
   if (usedPoints > totalPoints) {
-    throw new Error("Você distribuiu mais pontos do que o permitido.");
+    throw new Error(
+      "Você distribuiu mais pontos do que o permitido."
+    );
   }
 
-
+  // Stats estruturais finais
   const baseStats: Stats = {
-    hp: modifiedForm.hp + sheet.hpLevelPoints + sheet.hpVita,
-    atk: modifiedForm.attack + sheet.atkLevelPoints + sheet.atkVita,
-    def: modifiedForm.defense + sheet.defLevelPoints + sheet.defVita,
-    spAtk: modifiedForm.spAttack + sheet.spAtkLevelPoints + sheet.spAtkVita,
-    spDef: modifiedForm.spDefense + sheet.spDefLevelPoints + sheet.spDefVita,
-    speed: modifiedForm.speed + sheet.speedLevelPoints + sheet.speedVita,
+    hp: tierForm.hp + sheet.hpLevelPoints,
+
+    atk: tierForm.attack + sheet.atkLevelPoints,
+
+    def: tierForm.defense + sheet.defLevelPoints,
+
+    spAtk: tierForm.spAttack + sheet.spAtkLevelPoints,
+
+    spDef: tierForm.spDefense + sheet.spDefLevelPoints,
+
+    speed: tierForm.speed + sheet.speedLevelPoints,
   };
 
-  const tiers = getTiers(modifiedForm);
+  // Patamares consideram vitaminas
+  const tiers = getTiers(tierForm);
+
   validateTiers(baseStats, tiers);
 
   const values = Object.values(baseStats);
+
   const max = Math.max(...values);
   const min = Math.min(...values);
 
+  // Limite máximo de atributo
   if (sheet.level <= 20 && max > 20) {
-    throw new Error("Atributo não pode passar de 20 nesse nível.");
+    throw new Error(
+      "Atributo não pode passar de 20 nesse nível."
+    );
   }
 
   if (sheet.level > 20 && max > sheet.level) {
-    throw new Error("Atributo não pode passar do nível.");
+    throw new Error(
+      "Atributo não pode passar do nível."
+    );
   }
 
+  // Distância máxima entre atributos
   if (max > min * 5) {
-    throw new Error("Distância entre atributos inválida.");
+    throw new Error(
+      "Distância entre atributos inválida."
+    );
   }
 
-
+  // Modificadores temporários
   const finalStats: Stats = {
     hp: baseStats.hp + sheet.hpTemp,
+
     atk: baseStats.atk + sheet.atkTemp,
+
     def: baseStats.def + sheet.defTemp,
+
     spAtk: baseStats.spAtk + sheet.spAtkTemp,
+
     spDef: baseStats.spDef + sheet.spDefTemp,
+
     speed: baseStats.speed + sheet.speedTemp,
   };
 
-
   const displayStats = applyStages(finalStats, sheet);
-
 
   const secondary = getSecondary(sheet);
 
@@ -255,9 +312,13 @@ export function calculateSheet(sheet: Sheet, form: Form) {
 
     stageMultipliers: {
       atk: getStageMultiplier(sheet.atkStage),
+
       def: getStageMultiplier(sheet.defStage),
+
       spAtk: getStageMultiplier(sheet.spAtkStage),
+
       spDef: getStageMultiplier(sheet.spDefStage),
+
       speed: getStageMultiplier(sheet.speedStage),
     },
   };
